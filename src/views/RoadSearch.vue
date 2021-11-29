@@ -296,6 +296,12 @@ export default {
       const today = new Date()
       this.hour = today.getHours()
       this.minutes = today.getMinutes()
+      if (this.hour.toString().length === 1) {
+        this.hour = '0' + this.hour
+      }
+      if (this.minutes.toString().length === 1) {
+        this.minutes = '0' + this.minutes
+      }
     }
   },
   watch: {
