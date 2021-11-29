@@ -43,42 +43,55 @@
           </button>
         </div>
       </div>
-      <div class="bg-white rounded-1 shadow-sm">
-        <ul class="list-btn list-group flex-row">
-          <li
-            @click="isDirection = true"
-            class="list-group-item list-group-item-action border-0 text-center">
-            <h5 class="m-0">去程 {{ destinationTitle }}</h5>
-          </li>
-          <li
-            @click="isDirection = false"
-            class="list-group-item list-group-item-action border-0 text-center">
-            <h5 class="m-0">返程 {{ departureTitle }}</h5>
-          </li>
-        </ul>
-        <div class="distance-menu">
-          <table class="table table-striped table-hover">
-            <tbody>
-              <template v-for="item in busDestination" :key="item.StopUID">
-                <tr>
-                  <td
-                    v-if="isDirection === true"
-                    class="px-4 py-3">
-                    <p>{{ item.StopName.Zh_tw }} : {{ item.Direction }}</p>
-                  </td>
-                </tr>
-              </template>
-              <template v-for="item in busDeparture" :key="item.StopUID">
-                <tr>
-                  <td
-                    v-if="isDirection === false"
-                    class="px-4 py-3">
-                    <p>{{ item.StopName.Zh_tw }}  : {{ item.Direction }}</p>
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+      <div class="bg-white rounded-1 shadow-sm overflow-hidden">
+        <!-- 無資訊 -->
+        <div
+          :class="showTime? '' : 'd-none' "
+          class="position-relative">
+          <div class="time position-absolute text-white">
+            <h5>您還沒輸入路線資訊喔！</h5>
+            <p style="font-size: 4.6rem">{{ hour }} : {{ minutes }}</p>
+          </div>
+          <img class="w-100" src="../assets/images/info.svg" alt="show time">
+        </div>
+        <!-- 有資訊 -->
+        <div :class="showTime? 'd-none' : '' ">
+          <ul class="list-btn list-group flex-row">
+            <li
+              @click="isDirection = true"
+              class="list-group-item list-group-item-action border-0 text-center">
+              <h5 class="m-0">去程 {{ destinationTitle }}</h5>
+            </li>
+            <li
+              @click="isDirection = false"
+              class="list-group-item list-group-item-action border-0 text-center">
+              <h5 class="m-0">返程 {{ departureTitle }}</h5>
+            </li>
+          </ul>
+          <div class="distance-menu">
+            <table class="table table-striped table-hover">
+              <tbody>
+                <template v-for="item in busDestination" :key="item.StopUID">
+                  <tr>
+                    <td
+                      v-if="isDirection === true"
+                      class="px-4 py-3">
+                      <p>{{ item.StopName.Zh_tw }} : {{ item.Direction }}</p>
+                    </td>
+                  </tr>
+                </template>
+                <template v-for="item in busDeparture" :key="item.StopUID">
+                  <tr>
+                    <td
+                      v-if="isDirection === false"
+                      class="px-4 py-3">
+                      <p>{{ item.StopName.Zh_tw }}  : {{ item.Direction }}</p>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -133,6 +146,13 @@
       min-width: 247px;
     }
   }
+  .time {
+    top: 76px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    text-align: center;
+  }
 </style>
 
 <script>
@@ -155,6 +175,10 @@ export default {
       busDeparture: [],
       // 是否去程 Direction = 0
       isDirection: true,
+      // time
+      hour: 0,
+      minutes: 0,
+      showTime: true,
       city: [
         {
           name: '臺中市',
@@ -218,6 +242,10 @@ export default {
     },
     // 取得指定站牌(item)公車路線資料
     getCityBus () {
+      // 重整沒輸入路線資訊時間
+      this.getToday()
+      // 時間卡打開
+      this.showTime = true
       const urlData = `https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${this.selectCity}?$format=JSON`
       this.$http.get(urlData,
         {
@@ -234,6 +262,8 @@ export default {
     },
     // 取得指定[縣市],[路線名稱]的公車預估到站資料<批次
     getEstimated () {
+      // 時間卡關掉
+      this.showTime = false
       this.destinationTitle = this.selectRoad.DestinationStopNameZh
       this.departureTitle = this.selectRoad.DepartureStopNameZh
       this.busDestination = []
@@ -261,10 +291,24 @@ export default {
         .catch(error => {
           console.log('error 預估到站', error.response)
         })
+    },
+    getToday () {
+      const today = new Date()
+      this.hour = today.getHours()
+      this.minutes = today.getMinutes()
+    }
+  },
+  watch: {
+    selectCity: {
+      handler (n) {
+        console.log('new', n)
+      },
+      deep: true
     }
   },
   created () {
     this.getCityBus()
+    this.getToday()
   }
 }
 </script>
