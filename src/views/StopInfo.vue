@@ -1,13 +1,7 @@
 <template>
 <div class="container py-5">
-  <div class="d-flex flex-wrap justify-content-between mb-4">
+  <div class="mb-4">
     <h3 class="text-primary">Bus Stop | 附近站牌</h3>
-    <div class="search-width position-relative">
-      <input type="text" class="form-control text-center" placeholder="快速搜尋" aria-label="search stop" aria-describedby="search-stop">
-      <button class="search-btn btn pe-4" type="button" id="search-stop">
-        <img class="search-icon" src="../assets/images/icon-search.svg" alt="search icon">
-      </button>
-    </div>
   </div>
   <div class="bg-white p-5 rounded-1 shadow-sm">
     <h5>附近的站牌</h5>

@@ -3,7 +3,9 @@
   <div class="d-flex flex-wrap justify-content-between mb-4">
     <h3 class="text-primary">Latest News | 最新消息</h3>
     <div class="search-width position-relative">
-      <input type="text" class="form-control text-center" placeholder="快速搜尋" aria-label="search stop" aria-describedby="search-stop">
+      <input
+        v-model="search"
+        type="text" class="form-control text-center shadow-sm border border-light" :placeholder="`搜尋 ${selectCity} 關鍵字`" aria-label="search stop" aria-describedby="search-stop">
       <button class="search-btn btn pe-4" type="button" id="search-stop">
         <img class="search-icon" src="../assets/images/icon-search.svg" alt="search icon">
       </button>
@@ -27,7 +29,18 @@
         <table class="table table-striped table-hover">
           <tbody>
             <template v-for="item in cityNews" :key="item.NewsID">
-              <tr>
+              <tr :class="search === '' ? '' : 'd-none' ">
+                <td class="px-4 py-3">
+                  <a :href="item.NewsURL" target="_blank">
+                    <h5 class="text-primary"> {{ item.UpdateTime.substr(0, 10) }}</h5>
+                    <p>{{ item.Title }}</p>
+                  </a>
+                </td>
+              </tr>
+            </template>
+            <!-- 搜尋 -->
+            <template v-for="item in filterNews" :key="item.NewsID">
+              <tr :class="search === '' ? 'd-none' : '' ">
                 <td class="px-4 py-3">
                   <a :href="item.NewsURL" target="_blank">
                     <h5 class="text-primary"> {{ item.UpdateTime.substr(0, 10) }}</h5>
@@ -86,6 +99,8 @@ export default {
     return {
       selectCity: '',
       cityNews: [],
+      // 搜尋
+      search: '',
       city: [
         {
           name: '臺中市',
@@ -161,6 +176,13 @@ export default {
         .catch(error => {
           console.log('error news', error.response)
         })
+    }
+  },
+  computed: {
+    filterNews () {
+      return this.cityNews.filter((item) => {
+        return item.Title.match(this.search)
+      })
     }
   }
 }

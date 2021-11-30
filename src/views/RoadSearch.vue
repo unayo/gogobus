@@ -1,34 +1,29 @@
 <template>
 <div class="container py-5">
-  <div class="d-flex flex-wrap justify-content-between mb-4">
+  <div class="mb-4">
     <h3 class="text-primary">Road Search | 路線搜尋</h3>
-    <div class="search-width position-relative">
-      <input type="text" class="form-control text-center" placeholder="快速搜尋" aria-label="search stop" aria-describedby="search-stop">
-      <button class="search-btn btn pe-4" type="button" id="search-stop">
-        <img class="search-icon" src="../assets/images/icon-search.svg" alt="search icon">
-      </button>
-    </div>
   </div>
   <div class="row">
     <div class="col-12 col-md-4">
       <div class="going-box shadow-sm bg-white rounded-1 p-4 mb-4">
         <h5 class="my-3">Where are you going?</h5>
-        <select
+        <input
           @change="getCityBus"
           v-model="selectCity"
-          class="form-select" aria-label="Select city">
-          <option selected>選擇 縣市</option>
+          list="browsers"
+          class="form-control" style="padding-right: 0.75rem" placeholder="選擇 城市">
+        <datalist id="browsers">
           <template v-for="item in city" :key="item.en">
             <option :value="item.en">{{ item.name }}</option>
           </template>
-        </select>
+        </datalist>
         <svg width="100%" height="2px" class="my-4">
           <line x1="0" y1="0" x2="100%" y2="0" stroke-width="3" stroke-dasharray="14 6" style="stroke: #B6B6B6;"/>
         </svg>
         <select
           v-model="selectRoad"
           class="form-select" aria-label="Select road">
-          <option selected value="">選擇 路線</option>
+          <option selected>選擇 路線</option>
           <template v-for="(item, index) in road" :key="index">
             <option :value="item">
               [ {{ item.RouteName.Zh_tw }} ] {{ item.DepartureStopNameZh }} - {{ item.DestinationStopNameZh }}
@@ -72,21 +67,17 @@
             <table class="table table-striped table-hover">
               <tbody>
                 <template v-for="item in busDestination" :key="item.StopUID">
-                  <tr>
-                    <td
-                      v-if="isDirection === true"
-                      class="px-4 py-3">
-                      <p>{{ item.StopName.Zh_tw }} : {{ item.Direction }}</p>
-                    </td>
+                  <tr v-if="isDirection === true" class="px-4 py-3">
+                    <td><img src="../assets/images/arrow.svg" alt="arrow"></td>
+                    <td><p class="mb-0">{{ item.StopName.Zh_tw }}</p></td>
+                    <td><span class="fw-bold">{{ catStatue[item.StopStatus] }}</span></td>
                   </tr>
                 </template>
                 <template v-for="item in busDeparture" :key="item.StopUID">
-                  <tr>
-                    <td
-                      v-if="isDirection === false"
-                      class="px-4 py-3">
-                      <p>{{ item.StopName.Zh_tw }}  : {{ item.Direction }}</p>
-                    </td>
+                  <tr v-if="isDirection === false" class="px-4 py-3">
+                    <td><img src="../assets/images/arrow.svg" alt="arrow" style="transform:scaleY(-1)"></td>
+                    <td><p class="mb-0">{{ item.StopName.Zh_tw }}</p></td>
+                    <td><span class="fw-bold">{{ catStatue[item.StopStatus] }}</span></td>
                   </tr>
                 </template>
               </tbody>
@@ -95,7 +86,9 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-md-8"></div>
+    <div class="col-12 col-md-8">
+      <div id="mapid" class="mymap mt-4 mt-md-0 rounded-1 shadow-sm"></div>
+    </div>
   </div>
 </div>
 </template>
@@ -153,16 +146,22 @@
     width: 300px;
     text-align: center;
   }
+  .mymap {
+    height: 100%;
+    min-height: 342px;
+  }
 </style>
 
 <script>
 import JsSHA from 'jssha'
+import L from 'leaflet'
+import { onMounted } from 'vue'
 
 export default {
   data () {
     return {
       // 選擇縣市
-      selectCity: 'Taichung',
+      selectCity: '',
       // 選擇縣市之後， getCityBus 出現所有公車路線
       road: [],
       // select 選擇的站點
@@ -179,6 +178,8 @@ export default {
       hour: 0,
       minutes: 0,
       showTime: true,
+      // 車輛狀態備註
+      catStatue: ['正常', '尚未發車', '交管不停靠', '末班車已過', '今日未營運'],
       city: [
         {
           name: '臺中市',
@@ -304,13 +305,21 @@ export default {
       }
     }
   },
-  watch: {
-    selectCity: {
-      handler (n) {
-        console.log('new', n)
-      },
-      deep: true
-    }
+  setup () {
+    let mymap
+    onMounted(() => {
+      mymap = L.map('mapid').setView([51.505, -0.09], 15)
+
+      L.tileLayer('https://api.mapbox.com/styles/v1/{username}/{style_id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        username: 'unayo',
+        style_id: 'ckwkx6s8t0era14md50r8sehp',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoidW5heW8iLCJhIjoiY2t1d2EwNzZpMGh2aDJ3cmYwdWJnb2hudyJ9.XcnKuVJN2Q50urzdA594WQ'
+      }).addTo(mymap)
+    })
   },
   created () {
     this.getCityBus()
