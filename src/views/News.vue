@@ -25,7 +25,7 @@
     </div>
     <div class="row">
       <h5 class="my-3">{{ selectCity }} 最新消息</h5>
-      <div class="distance">
+      <div class="distance-news">
         <table class="table table-striped table-hover">
           <tbody>
             <template v-for="item in cityNews" :key="item.NewsID">
@@ -75,7 +75,7 @@
       filter: brightness(0.7);
     }
   }
-  .distance {
+  .distance-news {
     height: 54vh;
     overflow: scroll;
   }
